@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Winners and losers look identical at entry · Vivaan Desai</title>
+<meta name="description" content="Five tests on about 8,500 Nasdaq momentum trades: nothing at entry separates winners from losers, and where the edge really lives.">
+<meta name="author" content="Vivaan Desai">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Winners and losers look identical at entry">
+<meta property="og:description" content="Five tests on about 8,500 Nasdaq momentum trades, and where the edge really lives. A research note by Vivaan Desai, 17.">
+<meta property="og:image" content="https://vivaandesai26-glitch.github.io/notes/winners-look-like-losers/og.png">
+<meta property="og:url" content="https://vivaandesai26-glitch.github.io/notes/winners-look-like-losers/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232a78d6'/%3E%3Cpath d='M6 22 L12 16 L17 19 L26 9' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>html{-webkit-text-size-adjust:100%}*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~68ch) with charts at column width; a quiet header, a results list, five numbered tests, method, limits, ask. */
+:root {
+  --bg: #fbfcfd;
+  --surface: #f2f4f7;
+  --ink: #14171c;
+  --muted: #545b68;
+  --faint: #8a91a0;
+  --rule: #dfe3ea;
+  --accent: #2a78d6;
+  --s1: #2a78d6;      /* series 1 blue */
+  --s2: #eb6834;      /* series 2 orange */
+  --s3: #1baf7a;      /* series 3 aqua */
+  --grid: #e7eaf0;
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111418; --surface: #191d23; --ink: #eceef2; --muted: #aab1bd; --faint: #7d8592; --rule: #2b3039;
+    --accent: #3987e5; --s1: #3987e5; --s2: #d95926; --s3: #199e70; --grid: #252a32; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111418; --surface: #191d23; --ink: #eceef2; --muted: #aab1bd; --faint: #7d8592; --rule: #2b3039;
+  --accent: #3987e5; --s1: #3987e5; --s2: #d95926; --s3: #199e70; --grid: #252a32; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16.5px; line-height: 1.62;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 720px; margin: 0 auto; padding-block: 48px 72px; display: flex; flex-direction: column; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 6vw, 2.9rem); line-height: 1.08; font-weight: 700; }
+h2 { font-size: 1.45rem; font-weight: 600; line-height: 1.25; }
+h3 { font-size: 1.08rem; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+section { display: flex; flex-direction: column; gap: 14px; }
+.eyebrow { font-family: var(--font-data); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 1.15rem; color: var(--muted); }
+.byline { font-size: 0.9rem; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 14px; }
+.byline strong { color: var(--ink); font-weight: 600; }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; font-size: 0.92em; }
+ul.results { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+ul.results li { display: grid; grid-template-columns: 2.2rem 1fr; gap: 8px; align-items: baseline; }
+ul.results li > span:first-child { font-family: var(--font-data); color: var(--accent); font-weight: 500; }
+.test { border-top: 1px solid var(--rule); padding-top: 26px; }
+.test-head { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.test-no { font-family: var(--font-data); color: var(--accent); font-size: 0.95rem; }
+.verdict { font-family: var(--font-data); font-size: 0.78rem; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--rule); color: var(--muted); }
+figure { margin: 4px 0 0; display: flex; flex-direction: column; gap: 8px; }
+figcaption { font-size: 0.86rem; color: var(--muted); }
+.chart { width: 100%; overflow-x: auto; }
+.chart svg { display: block; width: 100%; height: auto; min-width: 320px; }
+.chart text { font-family: var(--font-body); font-size: 12px; fill: var(--muted); }
+.chart .lbl { fill: var(--ink); font-weight: 500; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.85rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 4px; border-radius: 2px; display: inline-block; }
+details { font-size: 0.86rem; color: var(--muted); }
+details summary { cursor: pointer; color: var(--accent); width: fit-content; }
+details summary:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.tbl { overflow-x: auto; margin-top: 8px; }
+table { border-collapse: collapse; font-size: 0.86rem; min-width: 100%; }
+th, td { text-align: right; padding: 5px 10px; border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--muted); font-weight: 500; }
+.callout { background: var(--surface); border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+.callout p { max-width: none; }
+ul.plain { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 6px; }
+a { color: var(--accent); }
+.foot { font-size: 0.82rem; color: var(--faint); border-top: 1px solid var(--rule); padding-top: 16px; }
+@media (max-width: 520px) { body { font-size: 15.5px; } .wrap { padding-block: 32px 56px; gap: 32px; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:16px">
+    <div class="eyebrow">Research note · Nasdaq intraday momentum · November 2026</div>
+    <h1>Winners and losers look identical at entry</h1>
+    <p class="lede">Five tests on about 8,500 backtest trades and 380 live (demo) trades, and what they say about where a momentum edge really lives.</p>
+    <p class="byline"><strong>Vivaan Desai</strong> · 17, still in school · I built and run this system myself, on a demo account, and publish the results that didn't work too. <a href="../winners-look-like-losers.pdf">PDF version</a></p>
+  </header>
+
+  <section>
+    <h2>Results in brief</h2>
+    <ul class="results">
+      <li><span>1</span><span>Nothing visible at the moment of entry separates future winners from losers. I checked 23 features of the market and of the entry bar across two backtest periods and live trading. One held up in all three, and the system already used it.</span></li>
+      <li><span>2</span><span>The outcome shows up quickly once the trade is on, but only through price. Fifteen minutes in, profit or loss alone separates final winners from losers with an AUC of about <span class="num">0.75–0.79</span>. The shape of the path adds at most <span class="num">0.03</span>.</span></li>
+      <li><span>3</span><span>Calendar flows that are supposed to be predictable have faded. A month-end rebalancing effect that was clear in 2012–18 reversed in 2019–26.</span></li>
+      <li><span>4</span><span>Machine learning found nothing the simple model missed. Gradient-boosted trees with 1-minute features scored an out-of-sample AUC of <span class="num">0.528</span>, and <span class="num">0.497</span> on live trades.</span></li>
+      <li><span>5</span><span>An unsupervised regime model learned quiet versus busy markets. It did not learn trend versus chop, and it told me nothing about the next four hours.</span></li>
+      <li><span>→</span><span>The edge is in the shape of the payoff: cut losers fast, keep the trades that move <span class="num">+1R</span> in your favour. About 3 in 10 trades get there, and they earn more than the whole system nets.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>The system, without the rules</h2>
+    <p>It trades the Nasdaq 100 index CFD on 15-minute bars in both directions, entering in the direction of a move that is already under way. Every trade has a stop scaled to recent volatility (ATR), so a loss of one stop is called <span class="num">−1R</span>. Losers that don't work quickly are cut, and winners are trailed. Every trade risks the same fraction of the account, with five simple size rules on top.</p>
+    <p>It has run in real time on a demo account since July 2026. Each week I replay the same week in the backtest engine and match trades one by one. In the weeks checked so far, <span class="num">87–100%</span> of trades matched, so the backtest numbers below describe the same system that trades live.</p>
+    <p>I don't publish the entry or exit rules. Everything here is about what the trades show, not how to copy them.</p>
+  </section>
+
+  <section class="test">
+    <div class="test-head"><span class="test-no">Test 1</span><h3>What the market looked like at the fill</h3><span class="verdict">nothing consistent</span></div>
+    <p>I grouped trades by 11 market traits at the moment of the fill: time of day, volatility, how far the day had moved, trend over 20 days, position in the 12-hour range and more. I added 12 features of the entry bar itself, such as body, wick and where it closed. For each, I compared the top third of trades with the bottom third, in live trades and in two backtest periods (2017–19 and 2022–26).</p>
+    <p>One feature pointed the same way in all three samples, and the system already sized trades on it. The rest flipped sign between periods or were inside the noise. Before the fill, winners and losers had travelled the same path: both entered after a run of about 2 ATR in their direction.</p>
+  </section>
+
+  <section class="test">
+    <div class="test-head"><span class="test-no">Test 2</span><h3>How fast does the market reveal the outcome?</h3><span class="verdict">only through price</span></div>
+    <p>At 15, 30, 60 and 120 minutes after entry I asked how well the trade's current profit or loss predicts whether it ends as a winner (AUC: 0.5 is a coin flip, 1.0 is certain). Then I asked whether the shape of the path adds anything: bar sizes, how clean the move was, how many bars went against the trade, other indices.</p>
+    <figure>
+      <div class="legend" aria-hidden="true">
+        <span><i style="background:var(--s1)"></i>Backtest 2022–26</span>
+        <span><i style="background:var(--s2)"></i>Backtest 2017–19</span>
+        <span><i style="background:var(--s3)"></i>Live (demo) Aug–Nov 2026</span>
+      </div>
+      <div class="chart" id="chart-curve" role="img" aria-label="Line chart: AUC rises from 0.5 at entry to about 0.75 to 0.79 after 15 minutes and about 0.89 after two hours in the backtests."></div>
+      <figcaption>AUC of profit or loss so far for "final winner", by minutes after entry. Models were trained on the other period and scored on this one. Part of the early rise is mechanical, because a trade that is red after the first bar is cut by rule.</figcaption>
+      <details><summary>Show the numbers</summary>
+        <div class="tbl"><table>
+          <tr><th>Minutes after entry</th><th>0</th><th>15</th><th>30</th><th>60</th><th>120</th></tr>
+          <tr><td>Backtest 2022–26</td><td>0.50</td><td>0.788</td><td>0.799</td><td>0.860</td><td>0.894</td></tr>
+          <tr><td>Backtest 2017–19</td><td>0.50</td><td>0.751</td><td>0.775</td><td>0.839</td><td>0.887</td></tr>
+          <tr><td>Live (demo)</td><td>0.50</td><td>0.753</td><td>0.794</td><td>0.847</td><td>0.782</td></tr>
+          <tr><td>Added by path shape</td><td>–</td><td>+0.00</td><td>+0.00 to +0.02</td><td>+0.00 to +0.03</td><td>+0.00 to +0.01*</td></tr>
+        </table></div>
+        <p style="margin-top:6px">*Live at 120 minutes gains from the best and worst point so far, which is still price.</p>
+      </details>
+    </figure>
+    <p>The steep curve looks like the market revealing a hidden answer. It isn't. From the one-hour mark, holding for four more hours is worth about zero in every profit-or-loss bucket (between <span class="num">−0.07R</span> and <span class="num">+0.08R</span>), with one exception: trades already above <span class="num">+1R</span> keep going (<span class="num">+0.12R</span> and <span class="num">+0.17R</span> in the two periods). After the fill the outcome is built bar by bar, and the curve mostly measures R already banked. One surprise went against my own idea: given the same profit, bigger bars after entry meant a slightly worse hold, not a better one.</p>
+  </section>
+
+  <section class="test">
+    <div class="test-head"><span class="test-no">Test 3</span><h3>Who has to trade after me?</h3><span class="verdict">the footprints faded</span></div>
+    <p>If nothing on the chart predicts the outcome, maybe the calendar does. Some traders must buy or sell on a timetable: pension funds rebalancing at month end, money arriving at the turn of the month, options dealers hedging into monthly expiry, volatility-target funds cutting exposure after volatility jumps. I first checked whether each flow leaves a footprint in the index itself, using daily data from 2012 to 2026.</p>
+    <figure>
+      <div class="legend" aria-hidden="true">
+        <span><i style="background:var(--s1)"></i>Nasdaq 100 (USTEC)</span>
+        <span><i style="background:var(--s2)"></i>S&amp;P 500 (US500)</span>
+      </div>
+      <div class="chart" id="chart-monthend" role="img" aria-label="Bar chart: in 2012 to 2018 the last three days of the month moved against the month-to-date direction by about 0.4 percent; in 2019 to 2026 the effect reversed to about minus 0.15 percent."></div>
+      <figcaption>Return over the last three trading days of the month against the month-to-date move, in months where that move was large (top or bottom third). Positive means the market reversed as rebalancing predicts. 2012–18 t-statistics: +1.68 (Nasdaq), +2.20 (S&amp;P).</figcaption>
+    </figure>
+    <p>The month-end effect was real until 2018, then reversed. The monthly options pin was visible intraday in 2017–19: on expiry Wednesday to Friday the day was less trendy (t −2.18). It disappeared in 2022–26, after options expiring every day took over. Turn-of-month and volatility-target flows left no footprint in Nasdaq. Flows with a public timetable get traded ahead of, and the ones that still pay are hard to time.</p>
+  </section>
+
+  <section class="test">
+    <div class="test-head"><span class="test-no">Test 4</span><h3>Can machine learning pick the winners?</h3><span class="verdict">no</span></div>
+    <p>This is meta-labeling: given that the system has fired, predict whether the trade becomes a runner (ends at <span class="num">+1R</span> or better). I used gradient-boosted trees with fixed settings and no tuning, 8 features from the 15-minute bars plus 11 from 1-minute bars (path efficiency, direction flips, tick volume against its usual level for that minute, signed volume, distance to VWAP and to the opening range). Validation used an expanding walk-forward with a 48-hour purge, training on one period and testing on the other, and the live trades.</p>
+    <figure>
+      <div class="chart" id="chart-deciles" role="img" aria-label="Bar chart: share of runners by model score decile, from 10.9 percent in the lowest decile to 16.4 percent in the highest, around an average of 13.2 percent."></div>
+      <figcaption>Out-of-sample runner rate by model score decile, backtest 2022–26 walk-forward (3,512 trades). The dashed line is the average, 13.2%.</figcaption>
+      <details><summary>Show the numbers</summary>
+        <div class="tbl"><table>
+          <tr><th>Test</th><th>15-min features only</th><th>+ 1-minute features</th></tr>
+          <tr><td>Walk-forward 2022–26, AUC</td><td>0.533</td><td>0.528</td></tr>
+          <tr><td>Train 2022–26, test 2017–19</td><td>0.535</td><td>0.549</td></tr>
+          <tr><td>Train 2017–19, test 2022–26</td><td>0.543</td><td>0.538</td></tr>
+          <tr><td>Live (demo) trades</td><td>–</td><td>0.497</td></tr>
+          <tr><td>Shuffled labels, 95th percentile</td><td>–</td><td>0.524</td></tr>
+        </table></div>
+      </details>
+    </figure>
+    <p>There is a faint real signal: the model beats shuffled labels (p = 0.015), and the top decile has more runners than the bottom one. But the 1-minute data added nothing (<span class="num">−0.005</span>). The model's probabilities were worse than simply predicting the average. Sizing trades up or down by its score lowered risk-adjusted returns in 2022–26 and on live trades. A check that leaks 5 minutes of the future into one feature scored 0.64, while the same feature from 5 minutes before the fill scored 0.51, so the setup could see real information if it were there.</p>
+  </section>
+
+  <section class="test">
+    <div class="test-head"><span class="test-no">Test 5</span><h3>Does the market have hidden moods?</h3><span class="verdict">activity, not direction</span></div>
+    <p>Last, I let a 3-state hidden Markov model learn market "moods" from six measurements of each 15-minute bar, without ever seeing a trade. It was refitted every month on the past year and read forward only, in both periods.</p>
+    <div class="tbl"><table>
+      <tr><th>State it found</th><th>Efficiency, last 4 h</th><th>Volatility percentile</th><th>Stays next bar</th><th>Efficiency, next 4 h</th></tr>
+      <tr><td>Quiet</td><td>0.20</td><td>0.29</td><td>91%</td><td>0.268</td></tr>
+      <tr><td>Busy</td><td>0.21</td><td>0.68</td><td>91%</td><td>0.267</td></tr>
+      <tr><td>Just ran one way</td><td>0.27</td><td>0.52</td><td>49%</td><td>0.269</td></tr>
+    </table></div>
+    <p>It learned what persists, which is activity. The state it was supposed to find, trend versus chop, doesn't persist and isn't hidden in these measurements. Next-four-hour efficiency is the same in every state (backtest 2022–26; 2017–19 is the same within 0.01).</p>
+  </section>
+
+  <section class="test">
+    <div class="test-head"><span class="test-no">So where is the edge?</span></div>
+    <figure>
+      <div class="chart" id="chart-edge" role="img" aria-label="Bar chart: trades that never reach +0.5R total minus 1,330 R; trades that reach +0.5R but not +1R total minus 372 R; trades that reach +1R total plus 1,906 R."></div>
+      <figcaption>Total R by how far each trade got in its favour. Backtest 2022–26, 5,338 trades, net +205R.</figcaption>
+      <details><summary>Show the numbers</summary>
+        <div class="tbl"><table>
+          <tr><th>Trades that…</th><th>Share</th><th>Win rate</th><th>Total</th></tr>
+          <tr><td>never reach +0.5R</td><td>51.5%</td><td>1%</td><td>−1,330R</td></tr>
+          <tr><td>reach +0.5R, not +1R</td><td>17.6%</td><td>19%</td><td>−372R</td></tr>
+          <tr><td>reach +1R</td><td>30.8%</td><td>96%</td><td>+1,906R</td></tr>
+        </table></div>
+      </details>
+    </figure>
+    <p>Direction at entry is close to a coin flip. The edge is the asymmetry: most trades are cut small, and the 3 in 10 that reach <span class="num">+1R</span> nearly all end as winners and carry the whole result. The best 5% of trades earn more than four times the system's net. So the useful questions are about holding and sizing those trades, about costs, and about adding independent strategies, not about predicting which trade will win.</p>
+  </section>
+
+  <section>
+    <h2>How I tested</h2>
+    <ul class="plain">
+      <li>Every test was written down before it ran: the question, the decision it feeds, and the pass or fail rule.</li>
+      <li>Two backtest periods, 2017–19 and 2022–26, plus live (demo) trades. A result counts only if it holds in both periods and points the same way live.</li>
+      <li>Positive controls: plant a fake signal of known size and check the test finds it. A null only counts if the test could have seen something.</li>
+      <li>Shuffled-label nulls and a future-leak check for the machine-learning work.</li>
+      <li>Every variant tried is counted, and verdicts are works, fails or undetermined, with the smallest effect each test could detect.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Limits</h2>
+    <ul class="plain">
+      <li>The account is a demo with real prices. Live results so far show about half the backtest's edge per trade, over a few months and several system versions.</li>
+      <li>One market, one broker's CFD, intraday only. Costs matter: the spread is roughly as large as the edge per trade.</li>
+      <li>All numbers marked backtest come from my own engine. It matches live trades closely in the weeks checked, but it is still a model.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>What I've already tried</h2>
+    <p>So you can skip the obvious suggestions, and tell me if any of these were tested badly. Each was a pre-registered test on the engine; most also checked against live trades.</p>
+    <div class="tbl"><table>
+      <tr><th>Idea</th><th>Result</th></tr>
+      <tr><td>Entry filters on market state (volatility, time of day, trend, range used)</td><td>No filter holds across both periods</td></tr>
+      <tr><td>Chop / regime detectors (efficiency ratio, ADX, VWAP bands, HMM)</td><td>Volatility persists, chop does not</td></tr>
+      <tr><td>Order flow from the futures book (one week of tick data)</td><td>Moves with price, leads nothing</td></tr>
+      <tr><td>Dealer gamma from CME options</td><td>Predicts the size of moves; no persistence effect found</td></tr>
+      <tr><td>Calendar flows (month end, turn of month, options expiry, vol targeting)</td><td>Faded or reversed after 2018</td></tr>
+      <tr><td>Machine learning on 15-min and 1-min features</td><td>AUC 0.53, no sizing benefit</td></tr>
+      <tr><td>Breakeven stops after a small profit</td><td>Lost in both periods and live</td></tr>
+      <tr><td>Partial profit-taking</td><td>Worse than letting the trailing stop work</td></tr>
+      <tr><td>Re-entry cooldowns after a loss</td><td>Cost money under equal sizing</td></tr>
+      <tr><td>Stacking size multipliers on "better" setups</td><td>Bigger bets did not win more live; equal risk did better</td></tr>
+      <tr><td>Same engine on 30-min and 1-hour bars</td><td>Weak, and correlated with the 15-min version</td></tr>
+      <tr><td>Same engine on DAX, gold and four other markets</td><td>Loses everywhere except Nasdaq</td></tr>
+      <tr><td>Fading the move on quiet days</td><td>Earns on quiet days, gives it back on trend days</td></tr>
+    </table></div>
+  </section>
+
+  <section class="callout">
+    <h2>Where I might be wrong, and what I'd like from you</h2>
+    <p>I'm 17 and teaching myself, so I expect some of this is wrong in ways I can't see yet. If you trade or research systematically, two lines on any of these would help a lot:</p>
+    <ul class="plain">
+      <li>Is the machine-learning setup fair? What would you change: the label, the features, the model, the validation?</li>
+      <li>Could the edge be something simpler in disguise, like plain trend exposure in a market that mostly went up?</li>
+      <li>Is a demo account's fill quality hiding a cost problem I'll only meet with real money?</li>
+      <li>Which test above would you have designed differently, and how?</li>
+      <li>What is the one thing you would try next that isn't on the list?</li>
+    </ul>
+    <p>I'm also happy to share the data behind any chart.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+      <span class="num" id="contact-email" style="color:var(--ink);user-select:all">vivaan.desai26@gmail.com</span>
+      <button type="button" id="copy-email" style="font:inherit;font-size:0.85rem;padding:4px 12px;border-radius:6px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);cursor:pointer">Copy email</button>
+      <span id="copy-status" class="num" style="color:var(--muted)" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <p class="foot">Backtest = the author's simulation engine with a simulated broker. Live (demo) = the same code trading in real time on a demo account. Nothing here is investment advice.</p>
+</div>
+
+<script>
+(function () {
+  var btn = document.getElementById("copy-email"), st = document.getElementById("copy-status");
+  if (btn) btn.addEventListener("click", function () {
+    var t = document.getElementById("contact-email").textContent;
+    function sel() { var r = document.createRange(); r.selectNodeContents(document.getElementById("contact-email")); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); st.textContent = "Selected - press Ctrl+C"; }
+    try { navigator.clipboard.writeText(t).then(function () { st.textContent = "Copied"; }, sel); } catch (e) { sel(); }
+  });
+})();
+(function () {
+  var NS = "http://www.w3.org/2000/svg";
+  function el(name, attrs, parent, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function tip(node, text) { el("title", {}, node, text); }
+
+  // ---------- line chart: information curve
+  (function () {
+    var host = document.getElementById("chart-curve");
+    var W = 680, H = 300, m = { l: 46, r: 24, t: 14, b: 40 };
+    var xs = [0, 15, 30, 60, 120];
+    var series = [
+      { name: "Backtest 2022–26", c: "var(--s1)", v: [0.5, 0.788, 0.799, 0.860, 0.894] },
+      { name: "Backtest 2017–19", c: "var(--s2)", v: [0.5, 0.751, 0.775, 0.839, 0.887] },
+      { name: "Live (demo)", c: "var(--s3)", v: [0.5, 0.753, 0.794, 0.847, 0.782] }
+    ];
+    var x = function (v) { return m.l + (v / 120) * (W - m.l - m.r); };
+    var y0 = 0.4, y1 = 1.0;
+    var y = function (v) { return m.t + (1 - (v - y0) / (y1 - y0)) * (H - m.t - m.b); };
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H }, host);
+    [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0].forEach(function (t) {
+      el("line", { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t), stroke: "var(--grid)", "stroke-width": 1 }, svg);
+      el("text", { x: m.l - 8, y: y(t) + 4, "text-anchor": "end" }, svg, t.toFixed(1));
+    });
+    el("line", { x1: m.l, x2: W - m.r, y1: y(0.5), y2: y(0.5), stroke: "var(--faint)", "stroke-width": 1, "stroke-dasharray": "4 4" }, svg);
+    el("text", { x: W - m.r, y: y(0.5) - 6, "text-anchor": "end" }, svg, "coin flip");
+    xs.forEach(function (t) { el("text", { x: x(t), y: H - m.b + 18, "text-anchor": "middle" }, svg, t === 0 ? "entry" : t + " min"); });
+    el("text", { x: (W + m.l) / 2, y: H - 6, "text-anchor": "middle" }, svg, "minutes after entry");
+    series.forEach(function (s) {
+      var d = s.v.map(function (v, i) { return (i ? "L" : "M") + x(xs[i]).toFixed(1) + " " + y(v).toFixed(1); }).join(" ");
+      el("path", { d: d, fill: "none", stroke: s.c, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+      s.v.forEach(function (v, i) {
+        var g = el("g", {}, svg);
+        el("circle", { cx: x(xs[i]), cy: y(v), r: 12, fill: "transparent" }, g);
+        el("circle", { cx: x(xs[i]), cy: y(v), r: 4.5, fill: s.c, stroke: "var(--bg)", "stroke-width": 2 }, g);
+        tip(g, s.name + " · " + (xs[i] === 0 ? "entry" : xs[i] + " min") + ": AUC " + v.toFixed(3));
+      });
+    });
+  })();
+
+  // ---------- grouped bars: month-end effect
+  (function () {
+    var host = document.getElementById("chart-monthend");
+    var W = 680, H = 260, m = { l: 52, r: 16, t: 16, b: 36 };
+    var groups = ["2012–18", "2019–26"];
+    var data = [
+      { name: "Nasdaq 100", c: "var(--s1)", v: [0.368, -0.153] },
+      { name: "S&P 500", c: "var(--s2)", v: [0.406, -0.180] }
+    ];
+    var y0 = -0.3, y1 = 0.5;
+    var y = function (v) { return m.t + (1 - (v - y0) / (y1 - y0)) * (H - m.t - m.b); };
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H }, host);
+    [-0.2, 0, 0.2, 0.4].forEach(function (t) {
+      el("line", { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t), stroke: t === 0 ? "var(--faint)" : "var(--grid)", "stroke-width": 1 }, svg);
+      el("text", { x: m.l - 8, y: y(t) + 4, "text-anchor": "end" }, svg, (t > 0 ? "+" : "") + t.toFixed(1) + "%");
+    });
+    var gw = (W - m.l - m.r) / groups.length, bw = 64;
+    groups.forEach(function (gname, gi) {
+      var cx = m.l + gw * gi + gw / 2;
+      el("text", { x: cx, y: H - 12, "text-anchor": "middle" }, svg, gname);
+      data.forEach(function (s, si) {
+        var v = s.v[gi], bx = cx - bw - 1 + si * (bw + 2);
+        var top = Math.min(y(v), y(0)), h = Math.abs(y(v) - y(0));
+        var g = el("g", {}, svg);
+        el("rect", { x: bx, y: top, width: bw, height: h, rx: 4, fill: s.c }, g);
+        el("text", { x: bx + bw / 2, y: v >= 0 ? top - 6 : top + h + 14, "text-anchor": "middle", class: "lbl" }, g, (v > 0 ? "+" : "") + v.toFixed(2) + "%");
+        tip(g, s.name + ", " + gname + ": " + (v > 0 ? "+" : "") + v.toFixed(3) + "%");
+      });
+    });
+  })();
+
+  // ---------- bars: runner rate by decile
+  (function () {
+    var host = document.getElementById("chart-deciles");
+    var W = 680, H = 250, m = { l: 44, r: 16, t: 16, b: 40 };
+    var v = [10.9, 13.1, 12.5, 12.9, 14.5, 11.9, 15.5, 12.2, 15.6, 16.4], avg = 13.2;
+    var y0 = 0, y1 = 20;
+    var y = function (t) { return m.t + (1 - (t - y0) / (y1 - y0)) * (H - m.t - m.b); };
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H }, host);
+    [0, 5, 10, 15, 20].forEach(function (t) {
+      el("line", { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t), stroke: t === 0 ? "var(--faint)" : "var(--grid)", "stroke-width": 1 }, svg);
+      el("text", { x: m.l - 8, y: y(t) + 4, "text-anchor": "end" }, svg, t + "%");
+    });
+    var step = (W - m.l - m.r) / v.length, bw = step - 10;
+    v.forEach(function (t, i) {
+      var bx = m.l + i * step + 5, g = el("g", {}, svg);
+      el("rect", { x: bx, y: y(t), width: bw, height: y(0) - y(t), rx: 4, fill: "var(--s1)" }, g);
+      el("text", { x: bx + bw / 2, y: H - m.b + 18, "text-anchor": "middle" }, svg, i + 1);
+      tip(g, "Decile " + (i + 1) + ": " + t.toFixed(1) + "% runners");
+    });
+    el("line", { x1: m.l, x2: W - m.r, y1: y(avg), y2: y(avg), stroke: "var(--ink)", "stroke-width": 1.5, "stroke-dasharray": "5 4" }, svg);
+    el("text", { x: m.l + 4, y: y(avg) - 6, class: "lbl" }, svg, "average 13.2%");
+    el("text", { x: (W + m.l) / 2, y: H - 4, "text-anchor": "middle" }, svg, "model score decile (1 = lowest)");
+  })();
+
+  // ---------- horizontal bars: where the edge lives
+  (function () {
+    var host = document.getElementById("chart-edge");
+    var W = 680, H = 200, m = { l: 210, r: 70, t: 12, b: 30 };
+    var rows = [
+      { name: "never reach +0.5R", v: -1330 },
+      { name: "reach +0.5R, not +1R", v: -372 },
+      { name: "reach +1R", v: 1906 }
+    ];
+    var x0 = -1500, x1 = 2000;
+    var x = function (t) { return m.l + (t - x0) / (x1 - x0) * (W - m.l - m.r); };
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H }, host);
+    [-1000, 0, 1000, 2000].forEach(function (t) {
+      el("line", { x1: x(t), x2: x(t), y1: m.t, y2: H - m.b, stroke: t === 0 ? "var(--faint)" : "var(--grid)", "stroke-width": 1 }, svg);
+      el("text", { x: x(t), y: H - 10, "text-anchor": "middle" }, svg, (t > 0 ? "+" : "") + t.toLocaleString("en-US") + "R");
+    });
+    var bh = 34, gap = (H - m.t - m.b - rows.length * bh) / (rows.length + 1);
+    rows.forEach(function (r, i) {
+      var by = m.t + gap + i * (bh + gap), g = el("g", {}, svg);
+      var left = Math.min(x(r.v), x(0)), w = Math.abs(x(r.v) - x(0));
+      el("rect", { x: left, y: by, width: w, height: bh, rx: 4, fill: r.v < 0 ? "var(--s2)" : "var(--s1)" }, g);
+      el("text", { x: m.l - 12, y: by + bh / 2 + 4, "text-anchor": "end", class: "lbl" }, svg, r.name);
+      el("text", { x: r.v < 0 ? x(0) + 8 : left + w + 6, y: by + bh / 2 + 4, "text-anchor": "start", class: "lbl" }, g,
+         (r.v > 0 ? "+" : "−") + Math.abs(r.v).toLocaleString("en-US") + "R");
+      tip(g, "Trades that " + r.name + ": " + (r.v > 0 ? "+" : "−") + Math.abs(r.v).toLocaleString("en-US") + "R in total");
+    });
+  })();
+})();
+</script>
+
+</body>
+</html>
